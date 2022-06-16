@@ -27,7 +27,6 @@
 ** =============================================================================
 */
 
-#include <linux/switch.h>
 #include <linux/regmap.h>
 #include <linux/timer.h>
 #include <linux/workqueue.h>
@@ -414,7 +413,6 @@ struct DRV2604L_data {
 	dev_t version;
 	struct semaphore sem;
 	struct cdev cdev;
-	struct switch_dev sw_dev;
 	volatile int vibrator_is_playing;
 	char ReadBuff[MAX_READ_BYTES];
 	int ReadLen;

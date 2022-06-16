@@ -169,7 +169,6 @@ static void drv2604l_change_mode(struct DRV2604L_data *pDrv2604ldata, char work_
 
 static void play_effect(struct DRV2604L_data *pDrv2604ldata)
 {
-	switch_set_state(&pDrv2604ldata->sw_dev, SW_STATE_SEQUENCE_PLAYBACK);
 	drv2604l_change_mode(pDrv2604ldata, WORK_SEQ_PLAYBACK, DEV_READY);
 	drv2604l_set_waveform_sequence(pDrv2604ldata, pDrv2604ldata->sequence, WAVEFORM_SEQUENCER_MAX);
 	pDrv2604ldata->vibrator_is_playing = YES;
@@ -184,7 +183,6 @@ static void play_effect(struct DRV2604L_data *pDrv2604ldata)
 	}
 
 	drv2604l_change_mode(pDrv2604ldata, WORK_IDLE, DEV_STANDBY);
-	switch_set_state(&pDrv2604ldata->sw_dev, SW_STATE_IDLE);
 	pDrv2604ldata->vibrator_is_playing = NO;
 	wake_unlock(&pDrv2604ldata->wklock);
 }
@@ -196,7 +194,6 @@ static void play_Pattern_RTP(struct DRV2604L_data *pDrv2604ldata)
 		if(pDrv2604ldata->repeat_times == 0){
 			drv2604l_change_mode(pDrv2604ldata, WORK_IDLE, DEV_STANDBY);
 			pDrv2604ldata->vibrator_is_playing = NO;
-			switch_set_state(&pDrv2604ldata->sw_dev, SW_STATE_IDLE);
 			wake_unlock(&pDrv2604ldata->wklock);
 		}else{
 			hrtimer_start(&pDrv2604ldata->timer, ns_to_ktime((u64)pDrv2604ldata->silience_time * NSEC_PER_MSEC), HRTIMER_MODE_REL);
@@ -223,7 +220,6 @@ static void play_Seq_RTP(struct DRV2604L_data *pDrv2604ldata)
 	}else{
 		drv2604l_change_mode(pDrv2604ldata, WORK_IDLE, DEV_STANDBY);
 		pDrv2604ldata->vibrator_is_playing = NO;
-		switch_set_state(&pDrv2604ldata->sw_dev, SW_STATE_IDLE);
 		wake_unlock(&pDrv2604ldata->wklock);
 	}
 }
@@ -234,7 +230,6 @@ static void vibrator_off(struct DRV2604L_data *pDrv2604ldata)
 		pDrv2604ldata->vibrator_is_playing = NO;
 		drv2604l_set_go_bit(pDrv2604ldata, STOP);
 		drv2604l_change_mode(pDrv2604ldata, WORK_IDLE, DEV_STANDBY);
-		switch_set_state(&pDrv2604ldata->sw_dev, SW_STATE_IDLE);
 		wake_unlock(&pDrv2604ldata->wklock);
 	}
 }
@@ -285,7 +280,6 @@ static void vibrator_enable( struct timed_output_dev *dev, int value)
 
 		drv2604l_change_mode(pDrv2604ldata, WORK_VIBRATOR, DEV_READY);
 		pDrv2604ldata->vibrator_is_playing = YES;
-		switch_set_state(&pDrv2604ldata->sw_dev, SW_STATE_RTP_PLAYBACK);
 
 		value = (value>MAX_TIMEOUT)?MAX_TIMEOUT:value;
 		hrtimer_start(&pDrv2604ldata->timer, ns_to_ktime((u64)value * NSEC_PER_MSEC), HRTIMER_MODE_REL);
@@ -466,7 +460,6 @@ static ssize_t dev2604_write(struct file* filp, const char* buff, size_t len, lo
 			if (value > 0)
 			{
 				wake_lock(&pDrv2604ldata->wklock);
-				switch_set_state(&pDrv2604ldata->sw_dev, SW_STATE_RTP_PLAYBACK);
 				pDrv2604ldata->vibrator_is_playing = YES;
 				value = (value > MAX_TIMEOUT)?MAX_TIMEOUT:value;
 				drv2604l_change_mode(pDrv2604ldata, WORK_RTP, DEV_READY);
@@ -487,7 +480,6 @@ static ssize_t dev2604_write(struct file* filp, const char* buff, size_t len, lo
 
 			if(pDrv2604ldata->vibration_time > 0){
 				wake_lock(&pDrv2604ldata->wklock);
-				switch_set_state(&pDrv2604ldata->sw_dev, SW_STATE_RTP_PLAYBACK);
 				pDrv2604ldata->vibrator_is_playing = YES;
 				if(pDrv2604ldata->repeat_times > 0)
 					pDrv2604ldata->repeat_times--;
@@ -513,7 +505,6 @@ static ssize_t dev2604_write(struct file* filp, const char* buff, size_t len, lo
 					}
 
 					wake_lock(&pDrv2604ldata->wklock);
-					switch_set_state(&pDrv2604ldata->sw_dev, SW_STATE_RTP_PLAYBACK);
 					drv2604l_change_mode(pDrv2604ldata, WORK_SEQ_RTP_OFF, DEV_IDLE);
 					schedule_work(&pDrv2604ldata->vibrator_work);
 				}else{
@@ -693,13 +684,6 @@ static int Haptics_init(struct DRV2604L_data *pDrv2604ldata)
 		goto fail3;
 	}
 
-	pDrv2604ldata->sw_dev.name = "haptics";
-	reval = switch_dev_register(&pDrv2604ldata->sw_dev);
-	if (reval < 0) {
-		printk(KERN_ALERT"drv2604: fail to register switch\n");
-		goto fail4;
-	}
-
 	pDrv2604ldata->to_dev.name = "vibrator";
 	pDrv2604ldata->to_dev.get_time = vibrator_get_time;
 	pDrv2604ldata->to_dev.enable = vibrator_enable;
@@ -726,8 +710,6 @@ static int Haptics_init(struct DRV2604L_data *pDrv2604ldata)
 
 	return 0;
 
-fail4:
-	switch_dev_unregister(&pDrv2604ldata->sw_dev);
 fail3:
 	device_destroy(pDrv2604ldata->class, pDrv2604ldata->version);
 fail2:
