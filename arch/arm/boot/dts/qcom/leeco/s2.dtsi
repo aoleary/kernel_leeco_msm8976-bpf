@@ -3,7 +3,6 @@
 #include "s2_pinctrl.dtsi"
 #include "s2_lcd_panels.dtsi"
 #include "s2_camera.dtsi"
-#include "s2_tp.dtsi"
 #include "s2_msm-pmi8950.dtsi"
 
 / {
@@ -329,6 +328,31 @@
 		synaptics,disable-gpios;
 		synaptics,bypass-packrat-id-check;
 		synaptics,button-map = <139 172 158>;
+	};
+
+	synaptics_dsx@4b {
+		compatible = "synaptics,dsx-i2c";
+		reg = <0x4b>;
+		interrupt-parent = <&msm_gpio>;
+		interrupts = <65 0x2>;
+		vdd_ana-supply = <&pm8950_l17>;
+		vcc_i2c-supply = <&pm8950_l6>;
+		synaptics,pwr-reg-name = "vdd_ana";
+		synaptics,bus-reg-name = "vcc_i2c";
+		pinctrl-names = "pmx_ts_active","pmx_ts_suspend";
+		pinctrl-0 = <&ts_int_active &ts_reset_active>;
+		pinctrl-1 = <&ts_int_suspend &ts_reset_suspend>;
+		synaptics,irq-gpio = <&msm_gpio 65 0>;
+		synaptics,irq-on-state = <0>;
+		synaptics,irq-flags = <0x2008>; /* IRQF_ONESHOT | IRQF_TRIGGER_LOW */
+		synaptics,reset-gpio = <&msm_gpio 64 0>;
+		synaptics,reset-on-state = <0>;
+		synaptics,reset-active-ms = <20>;
+		synaptics,power-delay-ms = <200>;
+		synaptics,reset-delay-ms = <100>;
+		synaptics,cap-button-codes=<139 102 158>;
+		//synaptics,max-y-for-2d = <800>; /* remove if no virtual buttons */
+		//synaptics,vir-button-codes = <102 100 900 100 60 158 300 900 100 60>;
 	};
 };
 
