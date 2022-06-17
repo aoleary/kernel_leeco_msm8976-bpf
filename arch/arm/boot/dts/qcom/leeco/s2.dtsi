@@ -21,8 +21,6 @@
 	status = "ok";
 };
 
-/delete-node/ &cont_splash_mem;
-
 / {
 	memory {
 		ramoops_mem: ramoops_region@0 {
@@ -36,13 +34,6 @@
 		other_ext_mem: other_ext_region@0 {
 			/delete-property/ reg;
 			reg = <0x0 0x84A00000 0x0 0x1E00000>;
-		};
-
-		cont_splash_mem: splash_region@82000000 {
-			linux,reserve-contiguous-region;
-			linux,reserve-region;
-			reg = <0x0 0x82000000 0x0 0x2800000>;
-			label = "cont_splash_mem";
 		};
 	};
 };
