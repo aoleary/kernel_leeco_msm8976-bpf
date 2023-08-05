@@ -5221,8 +5221,7 @@ int mdss_mdp_overlay_init(struct msm_fb_data_type *mfd)
 		goto init_fail;
 	}
 
-	mdp5_data->hist_event_sd = sysfs_get_dirent(dev->kobj.sd, NULL,
-							 "hist_event");
+	mdp5_data->hist_event_sd = sysfs_get_dirent(dev->kobj.sd, "hist_event");
 	if (!mdp5_data->hist_event_sd) {
 		pr_err("hist_event sysfs lookup failed\n");
 		rc = -ENODEV;
