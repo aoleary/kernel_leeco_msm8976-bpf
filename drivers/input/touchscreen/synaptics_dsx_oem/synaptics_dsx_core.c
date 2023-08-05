@@ -119,7 +119,7 @@ bool tp_sleep_mode = false;
 #define F12_WAKEUP_GESTURE_MODE 0x02
 #define F12_UDG_DETECT 0x0f
 
-static char *synaptics_sysfs_pathname(struct sysfs_dirent *sd, char *path);
+static char *synaptics_sysfs_pathname(struct kernfs_node *sd, char *path);
 static int synaptics_rmi4_check_status(struct synaptics_rmi4_data *rmi4_data,
 		bool *was_in_bl_mode);
 static int synaptics_rmi4_free_fingers(struct synaptics_rmi4_data *rmi4_data);
@@ -636,13 +636,13 @@ static struct kobj_attribute virtual_key_map_attr = {
 	.show = synaptics_rmi4_virtual_key_map_show,
 };
 
-static char *synaptics_sysfs_pathname(struct sysfs_dirent *sd, char *path)
+static char *synaptics_sysfs_pathname(struct kernfs_node *sd, char *path)
 {
-	if (sd->s_parent) {
-		synaptics_sysfs_pathname(sd->s_parent, path);
+	if (sd->parent) {
+		synaptics_sysfs_pathname(sd->parent, path);
 		strlcat(path, "/", PATH_MAX);
 	}
-	strlcat(path, sd->s_name, PATH_MAX);
+	strlcat(path, sd->name, PATH_MAX);
 	return path;
 }
 
@@ -839,7 +839,7 @@ static ssize_t synaptics_rmi4_virtual_key_map_show(struct kobject *kobj,
 	return count;
 }
 
-static int synaptics_rmi4_proc_init(struct sysfs_dirent *sysfs_dirent_parent)
+static int synaptics_rmi4_proc_init(struct kernfs_node *kernfs_node_parent)
 {
 	int ret = 0;
 	char *buf, *path = NULL;
@@ -849,7 +849,7 @@ static int synaptics_rmi4_proc_init(struct sysfs_dirent *sysfs_dirent_parent)
 
 	buf = kzalloc(PATH_MAX, GFP_KERNEL);
 	if (buf)
-		path = synaptics_sysfs_pathname(sysfs_dirent_parent, buf);
+		path = synaptics_sysfs_pathname(kernfs_node_parent, buf);
 
 	proc_entry_tp = proc_mkdir("touchpanel", NULL);
 	if (proc_entry_tp == NULL) {
